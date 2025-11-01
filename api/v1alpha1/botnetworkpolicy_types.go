@@ -1,3 +1,5 @@
+// +kubebuilder:object:generate=true
+// +groupName=bot.networking.dev
 package v1alpha1
 
 import (

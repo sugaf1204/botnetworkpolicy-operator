@@ -54,19 +54,31 @@ The operator will create or update a `NetworkPolicy` named `<metadata.name>-allo
 
 ### Using Helm
 
-The operator can be easily installed using Helm:
+The operator can be easily installed using Helm. The Helm chart includes the CRD (CustomResourceDefinition) in the `crds/` directory, which will be automatically installed by Helm.
 
 ```bash
-# Install from the Helm chart
+# Install from local Helm chart (for development)
 helm install botnetworkpolicy-operator ./charts/botnetworkpolicy-operator-chart \
   --namespace botnetworkpolicy-system \
   --create-namespace
 
-# Or install from a released package (after first release)
+# Or install from GitHub Container Registry (after first release)
 helm install botnetworkpolicy-operator \
-  https://github.com/sugaf1204/botnetworkpolicy-operator/releases/download/v0.1.0/botnetworkpolicy-operator-chart-0.1.0.tgz \
+  oci://ghcr.io/sugaf1204/chart/botnetworkpolicy-operator-chart \
+  --version 0.1.0 \
   --namespace botnetworkpolicy-system \
   --create-namespace
+```
+
+**Note about CRDs**: Helm automatically installs CRDs placed in the `crds/` directory during installation. However, Helm does **not** upgrade or delete CRDs during chart upgrades or uninstalls. If you need to update the CRD manually:
+
+```bash
+# Apply the CRD directly
+kubectl apply -f charts/botnetworkpolicy-operator-chart/crds/bot.networking.dev_botnetworkpolicies.yaml
+
+# Or if upgrading from OCI registry, extract and apply
+helm pull oci://ghcr.io/sugaf1204/chart/botnetworkpolicy-operator-chart --version 0.1.0 --untar
+kubectl apply -f botnetworkpolicy-operator-chart/crds/
 ```
 
 ### Configuration
@@ -105,7 +117,8 @@ This project uses GitHub Actions for continuous integration and deployment:
 - **CD Pipeline** (`.github/workflows/cd.yaml`): Runs on version tags (e.g., `v1.0.0`)
   - Builds multi-architecture Docker images (amd64, arm64)
   - Pushes images to GitHub Container Registry (`ghcr.io`)
-  - Packages and releases Helm chart as a GitHub release asset
+  - Packages and pushes Helm chart to GitHub Container Registry (`ghcr.io`)
+  - Releases Helm chart as a GitHub release asset
 
 ### Creating a Release
 

@@ -1,0 +1,265 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: botnetworkpolicies.bot.networking.dev
+spec:
+  group: bot.networking.dev
+  names:
+    kind: BotNetworkPolicy
+    listKind: BotNetworkPolicyList
+    plural: botnetworkpolicies
+    singular: botnetworkpolicy
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: BotNetworkPolicy is the Schema for the botnetworkpolicies API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: BotNetworkPolicySpec defines the desired state of BotNetworkPolicy.
+            properties:
+              customCidrs:
+                description: CustomCIDRs adds additional CIDRs that should be included
+                  in the generated NetworkPolicy.
+                items:
+                  type: string
+                type: array
+              egress:
+                description: Egress controls whether egress rules should be managed.
+                type: boolean
+              ingress:
+                description: Ingress controls whether ingress rules should be managed.
+                  Defaults to true.
+                type: boolean
+              namespaceSelector:
+                description: NamespaceSelector optionally restricts target namespaces.
+                  Currently informational.
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: |-
+                        A label selector requirement is a selector that contains values, a key, and an operator that
+                        relates the key and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: |-
+                            operator represents a key's relationship to a set of values.
+                            Valid operators are In, NotIn, Exists and DoesNotExist.
+                          type: string
+                        values:
+                          description: |-
+                            values is an array of string values. If the operator is In or NotIn,
+                            the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                            the values array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                      map is equivalent to an element of matchExpressions, whose key field is "key", the
+                      operator is "In", and the values array contains only "value". The requirements are ANDed.
+                    type: object
+                type: object
+                x-kubernetes-map-type: atomic
+              podSelector:
+                description: PodSelector selects the pods to which the NetworkPolicy
+                  will apply. If omitted, it targets all pods in the namespace.
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: |-
+                        A label selector requirement is a selector that contains values, a key, and an operator that
+                        relates the key and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: |-
+                            operator represents a key's relationship to a set of values.
+                            Valid operators are In, NotIn, Exists and DoesNotExist.
+                          type: string
+                        values:
+                          description: |-
+                            values is an array of string values. If the operator is In or NotIn,
+                            the values array must be non-empty. If the operator is Exists or DoesNotExist,
+                            the values array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+                      map is equivalent to an element of matchExpressions, whose key field is "key", the
+                      operator is "In", and the values array contains only "value". The requirements are ANDed.
+                    type: object
+                type: object
+                x-kubernetes-map-type: atomic
+              policyTypes:
+                description: PolicyTypes explicitly sets the policy types. If empty,
+                  they are derived from ingress/egress flags.
+                items:
+                  description: |-
+                    PolicyType string describes the NetworkPolicy type
+                    This type is beta-level in 1.8
+                  type: string
+                type: array
+              providers:
+                description: Providers declares the providers that should be consulted
+                  for IP ranges.
+                items:
+                  description: ProviderSpec describes a single provider.
+                  properties:
+                    configMap:
+                      description: ConfigMap configures the built-in config map provider.
+                      properties:
+                        key:
+                          description: Key selects the data key within the ConfigMap
+                            that contains newline or comma-separated CIDRs.
+                          type: string
+                        name:
+                          description: Name is the name of the ConfigMap.
+                          type: string
+                        namespace:
+                          description: Namespace is the namespace containing the ConfigMap.
+                            Defaults to the namespace of the BotNetworkPolicy.
+                          type: string
+                      required:
+                      - key
+                      - name
+                      type: object
+                    jsonEndpoint:
+                      description: JSONEndpoint configures the JSON endpoint provider
+                        that extracts CIDRs from a JSON response body.
+                      properties:
+                        fieldPath:
+                          description: FieldPath selects the JSON path (dot-separated)
+                            that contains the CIDR list.
+                          type: string
+                        headerSecretRefs:
+                          description: HeaderSecretRefs composes request headers from
+                            Kubernetes Secrets.
+                          items:
+                            description: HTTPHeaderSecretRef configures an HTTP header
+                              sourced from a Secret key.
+                            properties:
+                              name:
+                                description: Name is the HTTP header name.
+                                type: string
+                              secretKeyRef:
+                                description: SecretKeyRef identifies the Secret key
+                                  that contains the header value.
+                                properties:
+                                  key:
+                                    description: The key of the secret to select from.  Must
+                                      be a valid secret key.
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name of the referent.
+                                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                    type: string
+                                  optional:
+                                    description: Specify whether the Secret or its
+                                      key must be defined
+                                    type: boolean
+                                required:
+                                - key
+                                type: object
+                                x-kubernetes-map-type: atomic
+                            required:
+                            - name
+                            - secretKeyRef
+                            type: object
+                          type: array
+                        headers:
+                          additionalProperties:
+                            type: string
+                          description: Headers optionally adds headers to the HTTP
+                            request.
+                          type: object
+                        url:
+                          description: URL is the HTTP endpoint to query.
+                          type: string
+                      required:
+                      - fieldPath
+                      - url
+                      type: object
+                    name:
+                      description: 'Name identifies the provider type. Supported values:
+                        google, aws, github, configMap, jsonEndpoint.'
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
+              syncPeriod:
+                description: SyncPeriod defines how frequently the controller should
+                  refresh the provider data.
+                type: string
+            required:
+            - providers
+            type: object
+          status:
+            description: BotNetworkPolicyStatus defines the observed state of BotNetworkPolicy.
+            properties:
+              lastSyncTime:
+                description: LastSyncTime records the last time the providers were
+                  synchronised.
+                format: date-time
+                type: string
+              providerCount:
+                description: ProviderCount records how many providers were processed
+                  successfully.
+                type: integer
+            type: object
+        type: object
+    served: true
+    storage: true
