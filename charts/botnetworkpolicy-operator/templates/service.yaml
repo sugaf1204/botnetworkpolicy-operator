@@ -8,11 +8,11 @@ spec:
   type: {{ .Values.service.type }}
   ports:
   - name: metrics
-    port: {{ .Values.service.metricsPort }}
+    port: {{ .Values.metricsPort }}
     targetPort: metrics
     protocol: TCP
   - name: health
-    port: {{ .Values.service.healthPort }}
+    port: {{ .Values.healthPort }}
     targetPort: health
     protocol: TCP
   selector:

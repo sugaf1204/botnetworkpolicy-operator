@@ -32,17 +32,17 @@ spec:
         image: {{ include "botnetworkpolicy-operator.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         args:
-        - --metrics-bind-address={{ .Values.metricsBindAddress }}
-        - --health-probe-bind-address={{ .Values.healthProbeBindAddress }}
+        - --metrics-bind-address=:{{ .Values.metricsPort }}
+        - --health-probe-bind-address=:{{ .Values.healthPort }}
         {{- if .Values.leaderElection.enabled }}
         - --leader-elect
         {{- end }}
         ports:
         - name: metrics
-          containerPort: 8080
+          containerPort: {{ .Values.metricsPort }}
           protocol: TCP
         - name: health
-          containerPort: 8081
+          containerPort: {{ .Values.healthPort }}
           protocol: TCP
         livenessProbe:
           httpGet:

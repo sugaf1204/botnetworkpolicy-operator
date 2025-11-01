@@ -41,9 +41,12 @@ securityContext:
 
 service:
   type: ClusterIP
-  port: 8080
-  metricsPort: 8080
-  healthPort: 8081
+
+# Metrics server configuration
+metricsPort: 8080
+
+# Health probe server configuration
+healthPort: 8081
 
 resources:
   limits:
@@ -62,12 +65,6 @@ affinity: {}
 # Leader election configuration
 leaderElection:
   enabled: true
-
-# Metrics bind address
-metricsBindAddress: ":8080"
-
-# Health probe bind address
-healthProbeBindAddress: ":8081"
 
 # RBAC configuration
 rbac:
