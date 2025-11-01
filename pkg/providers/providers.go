@@ -10,7 +10,7 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	v1alpha1 "github.com/sugaf1204/botnetworkpolicy/api/v1alpha1"
+	v1alpha1 "github.com/sugaf1204/botnetworkpolicy-operator/api/v1alpha1"
 )
 
 const (
