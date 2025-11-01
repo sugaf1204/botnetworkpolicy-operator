@@ -1,5 +1,5 @@
 apiVersion: v2
-name: botnetworkpolicy-operator
+name: botnetworkpolicy-operator-chart
 description: Kubernetes operator that manages NetworkPolicy objects for bot IP ranges
 type: application
 version: 0.1.0
@@ -11,6 +11,6 @@ keywords:
   - security
 maintainers:
   - name: sugaf1204
-home: https://github.com/sugaf1204/botnetworkpolicy
+home: https://github.com/sugaf1204/botnetworkpolicy-operator
 sources:
-  - https://github.com/sugaf1204/botnetworkpolicy
+  - https://github.com/sugaf1204/botnetworkpolicy-operator

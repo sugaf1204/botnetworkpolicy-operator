@@ -1,4 +1,4 @@
-module github.com/sugaf1204/botnetworkpolicy
+module github.com/sugaf1204/botnetworkpolicy-operator
 
 go 1.25
 

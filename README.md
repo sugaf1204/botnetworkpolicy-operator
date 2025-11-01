@@ -1,7 +1,7 @@
 # Bot Network Policy Operator
 
-[![CI](https://github.com/sugaf1204/botnetworkpolicy/actions/workflows/ci.yaml/badge.svg)](https://github.com/sugaf1204/botnetworkpolicy/actions/workflows/ci.yaml)
-[![CD](https://github.com/sugaf1204/botnetworkpolicy/actions/workflows/cd.yaml/badge.svg)](https://github.com/sugaf1204/botnetworkpolicy/actions/workflows/cd.yaml)
+[![CI](https://github.com/sugaf1204/botnetworkpolicy-operator/actions/workflows/ci.yaml/badge.svg)](https://github.com/sugaf1204/botnetworkpolicy-operator/actions/workflows/ci.yaml)
+[![CD](https://github.com/sugaf1204/botnetworkpolicy-operator/actions/workflows/cd.yaml/badge.svg)](https://github.com/sugaf1204/botnetworkpolicy-operator/actions/workflows/cd.yaml)
 
 The Bot Network Policy Operator manages Kubernetes `NetworkPolicy` objects that allow ingress/egress traffic exclusively from known bot IP ranges published by popular cloud platforms and custom sources.  It periodically refreshes provider allowlists and keeps a deterministic NetworkPolicy in sync for each `BotNetworkPolicy` custom resource.
 
@@ -58,13 +58,13 @@ The operator can be easily installed using Helm:
 
 ```bash
 # Install from the Helm chart
-helm install botnetworkpolicy-operator ./charts/botnetworkpolicy-operator \
+helm install botnetworkpolicy-operator ./charts/botnetworkpolicy-operator-chart \
   --namespace botnetworkpolicy-system \
   --create-namespace
 
 # Or install from a released package (after first release)
 helm install botnetworkpolicy-operator \
-  https://github.com/sugaf1204/botnetworkpolicy/releases/download/v0.1.0/botnetworkpolicy-operator-0.1.0.tgz \
+  https://github.com/sugaf1204/botnetworkpolicy-operator/releases/download/v0.1.0/botnetworkpolicy-operator-chart-0.1.0.tgz \
   --namespace botnetworkpolicy-system \
   --create-namespace
 ```
@@ -74,7 +74,7 @@ helm install botnetworkpolicy-operator \
 You can customize the installation by overriding values:
 
 ```bash
-helm install botnetworkpolicy-operator ./charts/botnetworkpolicy-operator \
+helm install botnetworkpolicy-operator ./charts/botnetworkpolicy-operator-chart \
   --namespace botnetworkpolicy-system \
   --create-namespace \
   --set image.tag=v0.1.0 \
@@ -82,7 +82,7 @@ helm install botnetworkpolicy-operator ./charts/botnetworkpolicy-operator \
   --set resources.limits.memory=512Mi
 ```
 
-See [values.yaml](charts/botnetworkpolicy-operator/values.yaml) for all available configuration options.
+See [values.yaml](charts/botnetworkpolicy-operator-chart/values.yaml) for all available configuration options.
 
 ## Getting Started
 

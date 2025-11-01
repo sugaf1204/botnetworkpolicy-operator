@@ -15,8 +15,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	botv1alpha1 "github.com/sugaf1204/botnetworkpolicy/api/v1alpha1"
-	"github.com/sugaf1204/botnetworkpolicy/pkg/controllers"
+	botv1alpha1 "github.com/sugaf1204/botnetworkpolicy-operator/api/v1alpha1"
+	"github.com/sugaf1204/botnetworkpolicy-operator/pkg/controllers"
 )
 
 var (

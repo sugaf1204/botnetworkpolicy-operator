@@ -44,7 +44,7 @@ gofmt -w ./
 Use the provided `Dockerfile` to build a container image:
 
 ```bash
-docker build -t botnetworkpolicy-operator:dev .
+docker build -t ghcr.io/sugaf1204/botnetworkpolicy-operator:dev .
 ```
 
 ## Directory Structure

@@ -6,7 +6,7 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	botv1alpha1 "github.com/sugaf1204/botnetworkpolicy/api/v1alpha1"
+	botv1alpha1 "github.com/sugaf1204/botnetworkpolicy-operator/api/v1alpha1"
 )
 
 func TestBuildNetworkPolicy(t *testing.T) {

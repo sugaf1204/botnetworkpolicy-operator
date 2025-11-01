@@ -20,8 +20,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	botv1alpha1 "github.com/sugaf1204/botnetworkpolicy/api/v1alpha1"
-	"github.com/sugaf1204/botnetworkpolicy/pkg/providers"
+	botv1alpha1 "github.com/sugaf1204/botnetworkpolicy-operator/api/v1alpha1"
+	"github.com/sugaf1204/botnetworkpolicy-operator/pkg/providers"
 )
 
 // BotNetworkPolicyReconciler reconciles a BotNetworkPolicy object
