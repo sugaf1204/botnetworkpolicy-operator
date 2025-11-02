@@ -109,9 +109,14 @@ func (f *Factory) FromSpec(namespace string, spec v1alpha1.ProviderSpec) (Provid
 			regions = spec.AWS.Regions
 			nbgs = spec.AWS.NetworkBorderGroups
 		}
-		// If no filters specified, use default behavior
-		if len(services) == 0 && len(regions) == 0 && len(nbgs) == 0 {
+		// Apply default service filter if not explicitly specified
+		// This maintains backward compatibility and security by restricting to
+		// AMAZON/AMAZON_CONNECT services even when regions or NBGs are customized
+		if len(services) == 0 {
 			services = []string{"AMAZON", "AMAZON_CONNECT"}
+		}
+		// Apply default region filter only if no filters are specified at all
+		if len(regions) == 0 && len(nbgs) == 0 {
 			regions = []string{"GLOBAL", "us-east-1"}
 		}
 		selector := func(data map[string]any) ([]string, error) {
