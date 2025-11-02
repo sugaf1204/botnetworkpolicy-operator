@@ -72,12 +72,12 @@ jobs:
 
       - name: Update Chart.yaml with tag version
         run: |
-          sed -i "s/^version:.*/version: ${{ steps.get_version.outputs.VERSION }}/" charts/botnetworkpolicy-operator-chart/Chart.yaml
-          sed -i "s/^appVersion:.*/appVersion: \"${{ steps.get_version.outputs.VERSION }}\"/" charts/botnetworkpolicy-operator-chart/Chart.yaml
+          sed -i "s/^version:.*/version: ${{ steps.get_version.outputs.VERSION }}/" charts/botnetworkpolicy-operator/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${{ steps.get_version.outputs.VERSION }}\"/" charts/botnetworkpolicy-operator/Chart.yaml
 
       - name: Package Helm chart
         run: |
-          helm package charts/botnetworkpolicy-operator-chart -d .helm-release
+          helm package charts/botnetworkpolicy-operator -d .helm-release
 
       - name: Log in to GitHub Container Registry
         run: |
@@ -85,7 +85,7 @@ jobs:
 
       - name: Push Helm chart to GHCR
         run: |
-          helm push .helm-release/botnetworkpolicy-operator-chart-*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/chart
+          helm push .helm-release/botnetworkpolicy-operator-*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/chart
 
       - name: Upload Helm chart to release
         uses: softprops/action-gh-release@v2

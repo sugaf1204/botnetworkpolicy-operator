@@ -1,5 +1,5 @@
 apiVersion: v2
-name: botnetworkpolicy-operator-chart
+name: botnetworkpolicy-operator
 description: Kubernetes operator that manages NetworkPolicy objects for bot IP ranges
 type: application
 version: 0.1.0

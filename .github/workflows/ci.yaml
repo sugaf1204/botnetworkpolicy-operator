@@ -87,7 +87,7 @@ jobs:
           version: 'latest'
 
       - name: Lint Helm chart
-        run: helm lint charts/botnetworkpolicy-operator-chart
+        run: helm lint charts/botnetworkpolicy-operator
 
       - name: Template Helm chart
-        run: helm template test-release charts/botnetworkpolicy-operator-chart --debug
+        run: helm template test-release charts/botnetworkpolicy-operator --debug
