@@ -48,10 +48,6 @@ const (
 	defaultGitHubEndpoint = "https://api.github.com/meta"
 )
 
-func googleSelector(data map[string]any) ([]string, error) {
-	return googleSelectorWithScope(data, nil)
-}
-
 func googleSelectorWithScope(data map[string]any, scopes []string) ([]string, error) {
 	prefixesRaw, ok := data["prefixes"].([]any)
 	if !ok {
@@ -92,11 +88,6 @@ func googleSelectorWithScope(data map[string]any, scopes []string) ([]string, er
 		}
 	}
 	return results, nil
-}
-
-func awsSelector(data map[string]any) ([]string, error) {
-	// Default behavior: only AMAZON/AMAZON_CONNECT services in GLOBAL/us-east-1
-	return awsSelectorWithFilter(data, []string{"AMAZON", "AMAZON_CONNECT"}, []string{"GLOBAL", "us-east-1"}, nil)
 }
 
 func awsSelectorWithFilter(data map[string]any, services, regions, networkBorderGroups []string) ([]string, error) {
@@ -162,11 +153,6 @@ func awsSelectorWithFilter(data map[string]any, services, regions, networkBorder
 		}
 	}
 	return results, nil
-}
-
-func githubSelector(data map[string]any) ([]string, error) {
-	// Default behavior: only "hooks" role
-	return githubSelectorWithRoles(data, []string{"hooks"})
 }
 
 func githubSelectorWithRoles(data map[string]any, roles []string) ([]string, error) {
