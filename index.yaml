@@ -3,10 +3,10 @@ entries:
   botnetworkpolicy-operator:
   - apiVersion: v2
     appVersion: 0.2.0
-    created: "2025-11-02T14:51:16.562268892Z"
+    created: "2025-11-02T15:31:41.880960155Z"
     description: Kubernetes operator that manages NetworkPolicy objects for bot IP
       ranges
-    digest: 111365e0175dd457fb3a3e443652fbacc11d2c16cb78a4d22651456cf6305f9d
+    digest: f121fccc953b5c00f96ae09a97f67c36385df35f09f76af20721e51f4783948e
     home: https://github.com/sugaf1204/botnetworkpolicy-operator
     keywords:
     - kubernetes
@@ -22,4 +22,4 @@ entries:
     urls:
     - https://sugaf1204.github.io/botnetworkpolicy-operator/botnetworkpolicy-operator-0.2.0.tgz
     version: 0.2.0
-generated: "2025-11-02T14:51:16.561732514Z"
+generated: "2025-11-02T15:31:41.880382203Z"
