@@ -57,15 +57,23 @@ The operator will create or update a `NetworkPolicy` named `<metadata.name>-allo
 The operator can be easily installed using Helm. The Helm chart includes the CRD (CustomResourceDefinition) in the `crds/` directory, which will be automatically installed by Helm.
 
 ```bash
-# Install from local Helm chart (for development)
-helm install botnetworkpolicy-operator ./charts/botnetworkpolicy-operator-chart \
+# Add the Helm repository
+helm repo add botnetworkpolicy-operator https://sugaf1204.github.io/botnetworkpolicy-operator
+helm repo update
+
+# Install the operator
+helm install botnetworkpolicy-operator botnetworkpolicy-operator/botnetworkpolicy-operator-chart \
   --namespace botnetworkpolicy-system \
   --create-namespace
 
-# Or install from GitHub Container Registry (after first release)
-helm install botnetworkpolicy-operator \
-  oci://ghcr.io/sugaf1204/chart/botnetworkpolicy-operator-chart \
+# Or install a specific version
+helm install botnetworkpolicy-operator botnetworkpolicy-operator/botnetworkpolicy-operator-chart \
   --version 0.1.0 \
+  --namespace botnetworkpolicy-system \
+  --create-namespace
+
+# Install from local Helm chart (for development)
+helm install botnetworkpolicy-operator ./charts/botnetworkpolicy-operator-chart \
   --namespace botnetworkpolicy-system \
   --create-namespace
 ```

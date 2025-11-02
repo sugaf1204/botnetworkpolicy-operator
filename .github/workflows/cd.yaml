@@ -56,10 +56,18 @@ jobs:
     needs: build-and-push
     permissions:
       contents: write
-      packages: write
+      pages: write
+      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
@@ -75,21 +83,33 @@ jobs:
           sed -i "s/^version:.*/version: ${{ steps.get_version.outputs.VERSION }}/" charts/botnetworkpolicy-operator-chart/Chart.yaml
           sed -i "s/^appVersion:.*/appVersion: \"${{ steps.get_version.outputs.VERSION }}\"/" charts/botnetworkpolicy-operator-chart/Chart.yaml
 
+      - name: Checkout gh-pages branch
+        run: |
+          git checkout gh-pages || git checkout --orphan gh-pages
+          git reset --hard
+          git clean -fdx
+
+      - name: Checkout main branch chart
+        run: |
+          git checkout ${{ github.ref_name }} -- charts/
+
       - name: Package Helm chart
         run: |
-          helm package charts/botnetworkpolicy-operator-chart -d .helm-release
+          helm package charts/botnetworkpolicy-operator-chart -d .
 
-      - name: Log in to GitHub Container Registry
+      - name: Update Helm repository index
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+          helm repo index . --url https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
 
-      - name: Push Helm chart to GHCR
+      - name: Commit and push to gh-pages
         run: |
-          helm push .helm-release/botnetworkpolicy-operator-chart-*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/chart
+          git add *.tgz index.yaml
+          git commit -m "Release Helm chart version ${{ steps.get_version.outputs.VERSION }}"
+          git push origin gh-pages
 
       - name: Upload Helm chart to release
         uses: softprops/action-gh-release@v2
         with:
-          files: .helm-release/*.tgz
+          files: ./*.tgz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
