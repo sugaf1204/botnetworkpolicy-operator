@@ -77,6 +77,18 @@ type ProviderSpec struct {
 	// JSONEndpoint configures the JSON endpoint provider that extracts CIDRs from a JSON response body.
 	// +optional
 	JSONEndpoint *JSONEndpointProviderSpec `json:"jsonEndpoint,omitempty"`
+
+	// Google configures the Google provider with role-specific settings.
+	// +optional
+	Google *GoogleProviderSpec `json:"google,omitempty"`
+
+	// AWS configures the AWS provider with service and region filtering.
+	// +optional
+	AWS *AWSProviderSpec `json:"aws,omitempty"`
+
+	// GitHub configures the GitHub provider with role selection.
+	// +optional
+	GitHub *GitHubProviderSpec `json:"github,omitempty"`
 }
 
 // ConfigMapProviderSpec fetches CIDRs from a ConfigMap key.
@@ -107,6 +119,79 @@ type JSONEndpointProviderSpec struct {
 	// HeaderSecretRefs composes request headers from Kubernetes Secrets.
 	// +optional
 	HeaderSecretRefs []HTTPHeaderSecretRef `json:"headerSecretRefs,omitempty"`
+
+	// Filter optionally filters array elements based on field conditions.
+	// Only elements matching all filter conditions will be included.
+	// +optional
+	Filter *JSONFilterSpec `json:"filter,omitempty"`
+}
+
+// GoogleProviderSpec configures Google Cloud IP range fetching.
+type GoogleProviderSpec struct {
+	// URL overrides the default Google Cloud IP ranges endpoint.
+	// Default endpoints:
+	//   - goog.json: https://www.gstatic.com/ipranges/goog.json (all Google services)
+	//   - cloud.json: https://www.gstatic.com/ipranges/cloud.json (Google Cloud only)
+	// +optional
+	URL string `json:"url,omitempty"`
+
+	// Scope filters which Google services to include. If empty, all services are included.
+	// Examples: "google-cloud-platform", "google"
+	// +optional
+	Scope []string `json:"scope,omitempty"`
+}
+
+// AWSProviderSpec configures AWS IP range fetching with filtering.
+type AWSProviderSpec struct {
+	// URL overrides the default AWS IP ranges endpoint.
+	// Default: https://ip-ranges.amazonaws.com/ip-ranges.json
+	// +optional
+	URL string `json:"url,omitempty"`
+
+	// Services filters which AWS services to include. If empty, all services are included.
+	// Examples: "AMAZON", "EC2", "S3", "CLOUDFRONT"
+	// +optional
+	Services []string `json:"services,omitempty"`
+
+	// Regions filters which AWS regions to include. If empty, all regions are included.
+	// Examples: "us-east-1", "eu-west-1", "GLOBAL"
+	// +optional
+	Regions []string `json:"regions,omitempty"`
+
+	// NetworkBorderGroups filters by network border group. If empty, all groups are included.
+	// +optional
+	NetworkBorderGroups []string `json:"networkBorderGroups,omitempty"`
+}
+
+// GitHubProviderSpec configures GitHub IP range fetching.
+type GitHubProviderSpec struct {
+	// URL overrides the default GitHub meta API endpoint.
+	// Default: https://api.github.com/meta
+	// +optional
+	URL string `json:"url,omitempty"`
+
+	// Roles selects which GitHub service roles to include. If empty, only "hooks" is used.
+	// Available roles: hooks, web, api, git, pages, importer, actions, dependabot
+	// +optional
+	Roles []string `json:"roles,omitempty"`
+}
+
+// JSONFilterSpec defines filtering conditions for JSON array elements.
+type JSONFilterSpec struct {
+	// FieldConditions specifies field-level matching conditions.
+	// All conditions must match for an element to be included.
+	// +optional
+	FieldConditions []FieldCondition `json:"fieldConditions,omitempty"`
+}
+
+// FieldCondition matches a field against one or more values.
+type FieldCondition struct {
+	// Field is the JSON field name to match against.
+	Field string `json:"field"`
+
+	// Values are the accepted values for this field. If empty, any non-empty value matches.
+	// +optional
+	Values []string `json:"values,omitempty"`
 }
 
 // HTTPHeaderSecretRef configures an HTTP header sourced from a Secret key.
@@ -222,6 +307,18 @@ func (in *ProviderSpec) DeepCopyInto(out *ProviderSpec) {
 		out.JSONEndpoint = new(JSONEndpointProviderSpec)
 		in.JSONEndpoint.DeepCopyInto(out.JSONEndpoint)
 	}
+	if in.Google != nil {
+		out.Google = new(GoogleProviderSpec)
+		in.Google.DeepCopyInto(out.Google)
+	}
+	if in.AWS != nil {
+		out.AWS = new(AWSProviderSpec)
+		in.AWS.DeepCopyInto(out.AWS)
+	}
+	if in.GitHub != nil {
+		out.GitHub = new(GitHubProviderSpec)
+		in.GitHub.DeepCopyInto(out.GitHub)
+	}
 }
 
 // DeepCopyInto copies the receiver.
@@ -238,6 +335,59 @@ func (in *JSONEndpointProviderSpec) DeepCopyInto(out *JSONEndpointProviderSpec) 
 		for i := range in.HeaderSecretRefs {
 			in.HeaderSecretRefs[i].DeepCopyInto(&out.HeaderSecretRefs[i])
 		}
+	}
+	if in.Filter != nil {
+		out.Filter = new(JSONFilterSpec)
+		in.Filter.DeepCopyInto(out.Filter)
+	}
+}
+
+// DeepCopyInto copies the receiver.
+func (in *GoogleProviderSpec) DeepCopyInto(out *GoogleProviderSpec) {
+	*out = *in
+	if in.Scope != nil {
+		out.Scope = append([]string{}, in.Scope...)
+	}
+}
+
+// DeepCopyInto copies the receiver.
+func (in *AWSProviderSpec) DeepCopyInto(out *AWSProviderSpec) {
+	*out = *in
+	if in.Services != nil {
+		out.Services = append([]string{}, in.Services...)
+	}
+	if in.Regions != nil {
+		out.Regions = append([]string{}, in.Regions...)
+	}
+	if in.NetworkBorderGroups != nil {
+		out.NetworkBorderGroups = append([]string{}, in.NetworkBorderGroups...)
+	}
+}
+
+// DeepCopyInto copies the receiver.
+func (in *GitHubProviderSpec) DeepCopyInto(out *GitHubProviderSpec) {
+	*out = *in
+	if in.Roles != nil {
+		out.Roles = append([]string{}, in.Roles...)
+	}
+}
+
+// DeepCopyInto copies the receiver.
+func (in *JSONFilterSpec) DeepCopyInto(out *JSONFilterSpec) {
+	*out = *in
+	if in.FieldConditions != nil {
+		out.FieldConditions = make([]FieldCondition, len(in.FieldConditions))
+		for i := range in.FieldConditions {
+			in.FieldConditions[i].DeepCopyInto(&out.FieldConditions[i])
+		}
+	}
+}
+
+// DeepCopyInto copies the receiver.
+func (in *FieldCondition) DeepCopyInto(out *FieldCondition) {
+	*out = *in
+	if in.Values != nil {
+		out.Values = append([]string{}, in.Values...)
 	}
 }
 

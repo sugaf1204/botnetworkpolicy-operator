@@ -1,0 +1,20 @@
+apiVersion: bot.networking.dev/v1alpha1
+kind: BotNetworkPolicy
+metadata:
+  name: aws-s3-eu-only
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: my-app
+  ingress: true
+  egress: false
+  providers:
+    - name: aws
+      aws:
+        # Filter only S3 service in EU regions
+        services:
+          - S3
+        regions:
+          - eu-west-1
+          - eu-central-1

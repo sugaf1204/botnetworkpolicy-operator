@@ -1,0 +1,18 @@
+apiVersion: bot.networking.dev/v1alpha1
+kind: BotNetworkPolicy
+metadata:
+  name: github-webhooks-and-actions
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: ci-cd-server
+  ingress: true
+  egress: false
+  providers:
+    - name: github
+      github:
+        # Allow both webhooks and GitHub Actions
+        roles:
+          - hooks
+          - actions

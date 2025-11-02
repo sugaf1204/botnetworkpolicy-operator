@@ -56,7 +56,6 @@ jobs:
     needs: build-and-push
     permissions:
       contents: write
-      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,21 +74,38 @@ jobs:
           sed -i "s/^version:.*/version: ${{ steps.get_version.outputs.VERSION }}/" charts/botnetworkpolicy-operator/Chart.yaml
           sed -i "s/^appVersion:.*/appVersion: \"${{ steps.get_version.outputs.VERSION }}\"/" charts/botnetworkpolicy-operator/Chart.yaml
 
+      - name: Create publish directory
+        run: mkdir -p .helm-publish
+
+      - name: Checkout gh-pages to get existing index
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: .helm-publish
+        continue-on-error: true
+
       - name: Package Helm chart
         run: |
-          helm package charts/botnetworkpolicy-operator -d .helm-release
+          helm package charts/botnetworkpolicy-operator -d .helm-publish
 
-      - name: Log in to GitHub Container Registry
+      - name: Update Helm repository index
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+          if [ -f .helm-publish/index.yaml ]; then
+            helm repo index .helm-publish --url https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }} --merge .helm-publish/index.yaml
+          else
+            helm repo index .helm-publish --url https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          fi
 
-      - name: Push Helm chart to GHCR
-        run: |
-          helm push .helm-release/botnetworkpolicy-operator-*.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/chart
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .helm-publish
+          keep_files: true
 
       - name: Upload Helm chart to release
         uses: softprops/action-gh-release@v2
         with:
-          files: .helm-release/*.tgz
+          files: .helm-publish/*.tgz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

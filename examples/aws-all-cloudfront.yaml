@@ -1,0 +1,18 @@
+apiVersion: bot.networking.dev/v1alpha1
+kind: BotNetworkPolicy
+metadata:
+  name: aws-cloudfront-all-regions
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: cdn-frontend
+  ingress: true
+  egress: false
+  providers:
+    - name: aws
+      aws:
+        # Get CloudFront IPs from all regions
+        # Empty regions means all regions are included
+        services:
+          - CLOUDFRONT

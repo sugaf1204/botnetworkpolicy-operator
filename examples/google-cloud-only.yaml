@@ -1,0 +1,18 @@
+apiVersion: bot.networking.dev/v1alpha1
+kind: BotNetworkPolicy
+metadata:
+  name: google-cloud-only
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: backend-api
+  ingress: true
+  egress: false
+  providers:
+    - name: google
+      google:
+        # Use Google Cloud IP ranges only (not all Google services)
+        url: https://www.gstatic.com/ipranges/cloud.json
+        scope:
+          - google-cloud-platform

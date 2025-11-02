@@ -85,11 +85,56 @@ func (f *Factory) FromSpec(namespace string, spec v1alpha1.ProviderSpec) (Provid
 
 	switch strings.ToLower(spec.Name) {
 	case "google":
-		return &staticHTTPProvider{client: f.httpClient, url: f.googleEndpoint, selector: googleSelector}, nil
+		url := f.googleEndpoint
+		var scopes []string
+		if spec.Google != nil {
+			if spec.Google.URL != "" {
+				url = spec.Google.URL
+			}
+			scopes = spec.Google.Scope
+		}
+		selector := func(data map[string]any) ([]string, error) {
+			return googleSelectorWithScope(data, scopes)
+		}
+		return &staticHTTPProvider{client: f.httpClient, url: url, selector: selector}, nil
+
 	case "aws":
-		return &staticHTTPProvider{client: f.httpClient, url: f.awsEndpoint, selector: awsSelector}, nil
+		url := f.awsEndpoint
+		var services, regions, nbgs []string
+
+		// When spec.AWS is provided, respect the API contract:
+		// - Empty services = all services
+		// - Empty regions = all regions
+		// - Empty NBGs = all NBGs
+		if spec.AWS != nil {
+			if spec.AWS.URL != "" {
+				url = spec.AWS.URL
+			}
+			services = spec.AWS.Services
+			regions = spec.AWS.Regions
+			nbgs = spec.AWS.NetworkBorderGroups
+		}
+		// If spec.AWS is nil (name: aws only), all fields are empty = all IPs
+
+		selector := func(data map[string]any) ([]string, error) {
+			return awsSelectorWithFilter(data, services, regions, nbgs)
+		}
+		return &staticHTTPProvider{client: f.httpClient, url: url, selector: selector}, nil
+
 	case "github":
-		return &staticHTTPProvider{client: f.httpClient, url: f.githubEndpoint, selector: githubSelector}, nil
+		url := f.githubEndpoint
+		var roles []string
+		if spec.GitHub != nil {
+			if spec.GitHub.URL != "" {
+				url = spec.GitHub.URL
+			}
+			roles = spec.GitHub.Roles
+		}
+		selector := func(data map[string]any) ([]string, error) {
+			return githubSelectorWithRoles(data, roles)
+		}
+		return &staticHTTPProvider{client: f.httpClient, url: url, selector: selector}, nil
+
 	case "configmap":
 		cfg := spec.ConfigMap
 		ns := cfg.Namespace
@@ -97,6 +142,7 @@ func (f *Factory) FromSpec(namespace string, spec v1alpha1.ProviderSpec) (Provid
 			ns = namespace
 		}
 		return &configMapProvider{client: f.kubeClient, namespace: ns, name: cfg.Name, key: cfg.Key}, nil
+
 	case "jsonendpoint":
 		cfg := spec.JSONEndpoint
 		headers := http.Header{}
@@ -107,6 +153,20 @@ func (f *Factory) FromSpec(namespace string, spec v1alpha1.ProviderSpec) (Provid
 		for _, ref := range cfg.HeaderSecretRefs {
 			secretHeaders = append(secretHeaders, secretHeaderRef{name: ref.Name, selector: ref.SecretKeyRef})
 		}
+
+		var filter *jsonFilter
+		if cfg.Filter != nil && len(cfg.Filter.FieldConditions) > 0 {
+			filter = &jsonFilter{
+				fieldConditions: make([]fieldCondition, len(cfg.Filter.FieldConditions)),
+			}
+			for i, fc := range cfg.Filter.FieldConditions {
+				filter.fieldConditions[i] = fieldCondition{
+					field:  fc.Field,
+					values: fc.Values,
+				}
+			}
+		}
+
 		return &jsonEndpointProvider{
 			client:        f.httpClient,
 			kubeClient:    f.kubeClient,
@@ -115,6 +175,7 @@ func (f *Factory) FromSpec(namespace string, spec v1alpha1.ProviderSpec) (Provid
 			fieldPath:     cfg.FieldPath,
 			headers:       headers,
 			secretHeaders: secretHeaders,
+			filter:        filter,
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported provider: %s", spec.Name)

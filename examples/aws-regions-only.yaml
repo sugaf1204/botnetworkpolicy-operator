@@ -1,0 +1,19 @@
+apiVersion: bot.networking.dev/v1alpha1
+kind: BotNetworkPolicy
+metadata:
+  name: aws-custom-regions
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: my-app
+  ingress: true
+  egress: false
+  providers:
+    - name: aws
+      aws:
+        # Specify only regions - empty services means all AWS services
+        # will be included from these regions
+        regions:
+          - eu-west-1
+          - eu-central-1

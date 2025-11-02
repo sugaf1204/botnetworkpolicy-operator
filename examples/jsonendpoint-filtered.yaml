@@ -1,0 +1,27 @@
+apiVersion: bot.networking.dev/v1alpha1
+kind: BotNetworkPolicy
+metadata:
+  name: aws-custom-filtered
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: data-processor
+  ingress: true
+  egress: false
+  providers:
+    - name: jsonEndpoint
+      jsonEndpoint:
+        url: https://ip-ranges.amazonaws.com/ip-ranges.json
+        fieldPath: prefixes
+        # Filter for specific service and region
+        filter:
+          fieldConditions:
+            - field: service
+              values:
+                - AMAZON
+                - EC2
+            - field: region
+              values:
+                - us-east-1
+                - us-west-2

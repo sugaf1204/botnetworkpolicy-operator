@@ -20,6 +20,16 @@ type jsonEndpointProvider struct {
 	fieldPath     string
 	headers       http.Header
 	secretHeaders []secretHeaderRef
+	filter        *jsonFilter
+}
+
+type jsonFilter struct {
+	fieldConditions []fieldCondition
+}
+
+type fieldCondition struct {
+	field  string
+	values []string
 }
 
 func (p *jsonEndpointProvider) Fetch(ctx context.Context) ([]string, error) {
@@ -58,7 +68,7 @@ func (p *jsonEndpointProvider) Fetch(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 
-	cidrs, err := interpretCIDRs(value)
+	cidrs, err := interpretCIDRs(value, p.filter)
 	if err != nil {
 		return nil, err
 	}
@@ -126,16 +136,32 @@ func navigateField(input any, path string) (any, error) {
 	return current, nil
 }
 
-func interpretCIDRs(value any) ([]string, error) {
+func interpretCIDRs(value any, filter *jsonFilter) ([]string, error) {
 	switch v := value.(type) {
 	case []any:
 		cidrs := make([]string, 0, len(v))
 		for _, item := range v {
-			str, ok := item.(string)
-			if !ok {
-				return nil, fmt.Errorf("array value %v is not a string", item)
+			// If item is a string, use it directly
+			if str, ok := item.(string); ok {
+				cidrs = append(cidrs, str)
+				continue
 			}
-			cidrs = append(cidrs, str)
+
+			// If item is an object and we have a filter, apply filtering
+			if obj, ok := item.(map[string]any); ok {
+				if filter != nil && !matchesFilter(obj, filter) {
+					continue
+				}
+
+				// Try to extract CIDR from common field names
+				cidr := extractCIDRFromObject(obj)
+				if cidr != "" {
+					cidrs = append(cidrs, cidr)
+				}
+				continue
+			}
+
+			return nil, fmt.Errorf("array value %v is neither a string nor an object", item)
 		}
 		return cidrs, nil
 	case string:
@@ -143,4 +169,50 @@ func interpretCIDRs(value any) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("unsupported JSON field type %T", value)
 	}
+}
+
+func matchesFilter(obj map[string]any, filter *jsonFilter) bool {
+	// All field conditions must match
+	for _, condition := range filter.fieldConditions {
+		fieldValue, ok := obj[condition.field]
+		if !ok {
+			return false
+		}
+
+		fieldStr, ok := fieldValue.(string)
+		if !ok {
+			return false
+		}
+
+		// If no specific values specified, just check field exists
+		if len(condition.values) == 0 {
+			continue
+		}
+
+		// Check if field value matches any of the allowed values
+		matched := false
+		for _, allowedValue := range condition.values {
+			if strings.EqualFold(strings.TrimSpace(fieldStr), strings.TrimSpace(allowedValue)) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
+	}
+	return true
+}
+
+func extractCIDRFromObject(obj map[string]any) string {
+	// Try common CIDR field names
+	commonFields := []string{"ip_prefix", "ipv4Prefix", "ipv6Prefix", "cidr", "ipPrefix", "ip"}
+	for _, field := range commonFields {
+		if value, ok := obj[field].(string); ok {
+			if trimmed := strings.TrimSpace(value); trimmed != "" {
+				return trimmed
+			}
+		}
+	}
+	return ""
 }

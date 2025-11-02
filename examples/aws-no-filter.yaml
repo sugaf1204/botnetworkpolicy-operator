@@ -1,0 +1,14 @@
+apiVersion: bot.networking.dev/v1alpha1
+kind: BotNetworkPolicy
+metadata:
+  name: aws-all-ips
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: test-app
+  ingress: true
+  egress: false
+  providers:
+    # No aws configuration = all AWS IPs (all services, all regions)
+    - name: aws

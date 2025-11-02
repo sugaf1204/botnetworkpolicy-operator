@@ -154,7 +154,7 @@ func TestInterpretCIDRs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := interpretCIDRs(tt.value)
+			got, err := interpretCIDRs(tt.value, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("interpretCIDRs() error = %v, wantErr %v", err, tt.wantErr)
 				return
