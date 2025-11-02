@@ -56,18 +56,9 @@ jobs:
     needs: build-and-push
     permissions:
       contents: write
-      pages: write
-      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
@@ -83,33 +74,34 @@ jobs:
           sed -i "s/^version:.*/version: ${{ steps.get_version.outputs.VERSION }}/" charts/botnetworkpolicy-operator/Chart.yaml
           sed -i "s/^appVersion:.*/appVersion: \"${{ steps.get_version.outputs.VERSION }}\"/" charts/botnetworkpolicy-operator/Chart.yaml
 
-      - name: Checkout gh-pages branch
-        run: |
-          git checkout gh-pages || git checkout --orphan gh-pages
-          git reset --hard
-          git clean -fdx
+      - name: Create publish directory
+        run: mkdir -p .helm-publish
 
-      - name: Checkout main branch chart
-        run: |
-          git checkout ${{ github.ref_name }} -- charts/
+      - name: Checkout gh-pages to get existing index
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: .helm-publish
+        continue-on-error: true
 
       - name: Package Helm chart
         run: |
-          helm package charts/botnetworkpolicy-operator -d .
+          helm package charts/botnetworkpolicy-operator -d .helm-publish
 
       - name: Update Helm repository index
         run: |
-          helm repo index . --url https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          helm repo index .helm-publish --url https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }} --merge .helm-publish/index.yaml
 
-      - name: Commit and push to gh-pages
-        run: |
-          git add *.tgz index.yaml
-          git commit -m "Release Helm chart version ${{ steps.get_version.outputs.VERSION }}"
-          git push origin gh-pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .helm-publish
+          keep_files: true
 
       - name: Upload Helm chart to release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./*.tgz
+          files: .helm-publish/*.tgz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
